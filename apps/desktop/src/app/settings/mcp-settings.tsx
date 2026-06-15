@@ -107,7 +107,10 @@ export function McpSettings({ gateway, onConfigSaved }: McpSettingsProps) {
       setBody(JSON.stringify(server, null, 2))
       setSseUrl(type === 'sse' ? String(server.url ?? '') : '')
     } else {
-      setBody(JSON.stringify(serverType === 'sse' ? EMPTY_SSE : EMPTY_STDIO, null, 2))
+      // Reset to stdio defaults for a new-server form so we don't depend on
+      // the serverType closure value (which isn't in deps intentionally).
+      setServerType('stdio')
+      setBody(JSON.stringify(EMPTY_STDIO, null, 2))
       setSseUrl('')
     }
   }, [selected, servers])
@@ -133,7 +136,9 @@ export function McpSettings({ gateway, onConfigSaved }: McpSettingsProps) {
       parsed.url = url
       setBody(JSON.stringify(parsed, null, 2))
     } catch {
-      setBody(JSON.stringify({ url, transport: 'sse' }, null, 2))
+      // Body is not valid JSON right now (user may be mid-edit) — don't
+      // overwrite it; sseUrl will be reflected in the body once it becomes
+      // parseable again or when the user saves.
     }
   }
 
