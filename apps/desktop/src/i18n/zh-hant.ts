@@ -635,6 +635,11 @@ export const zhHant = defineLocale({
       disabled: '已停用',
       editServer: '編輯伺服器',
       name: '名稱',
+      serverType: '類型',
+      typeStdio: '本地',
+      typeSse: '遠端 (SSE)',
+      urlLabel: 'URL',
+      urlPlaceholder: 'https://example.com/mcp/sse',
       serverJson: '伺服器 JSON',
       remove: '移除',
       saveServer: '儲存伺服器'

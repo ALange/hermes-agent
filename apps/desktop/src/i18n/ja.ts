@@ -655,6 +655,11 @@ export const ja = defineLocale({
       disabled: '無効',
       editServer: 'サーバーを編集',
       name: '名前',
+      serverType: 'タイプ',
+      typeStdio: 'ローカル',
+      typeSse: 'リモート (SSE)',
+      urlLabel: 'URL',
+      urlPlaceholder: 'https://example.com/mcp/sse',
       serverJson: 'サーバー JSON',
       remove: '削除',
       saveServer: 'サーバーを保存'
