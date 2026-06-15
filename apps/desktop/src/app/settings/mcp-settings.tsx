@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { Textarea } from '@/components/ui/textarea'
 import { getHermesConfigRecord, type HermesGateway, saveHermesConfig } from '@/hermes'
 import { useI18n } from '@/i18n'
@@ -21,11 +22,21 @@ interface McpSettingsProps {
 }
 
 type McpServers = Record<string, Record<string, unknown>>
+type ServerType = 'stdio' | 'sse'
 
-const EMPTY_SERVER = {
+const EMPTY_STDIO = {
   command: '',
   args: [],
   env: {}
+}
+
+const EMPTY_SSE = {
+  url: '',
+  transport: 'sse'
+}
+
+function detectServerType(server: Record<string, unknown>): ServerType {
+  return typeof server.url === 'string' ? 'sse' : 'stdio'
 }
 
 function getServers(config: HermesConfigRecord | null): McpServers {
@@ -51,6 +62,8 @@ export function McpSettings({ gateway, onConfigSaved }: McpSettingsProps) {
   const [selected, setSelected] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [body, setBody] = useState('')
+  const [serverType, setServerType] = useState<ServerType>('stdio')
+  const [sseUrl, setSseUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [reloading, setReloading] = useState(false)
 
@@ -87,11 +100,46 @@ export function McpSettings({ gateway, onConfigSaved }: McpSettingsProps) {
     const server = selected ? servers[selected] : null
 
     setName(selected ?? '')
-    setBody(JSON.stringify(server ?? EMPTY_SERVER, null, 2))
+
+    if (server) {
+      const type = detectServerType(server)
+      setServerType(type)
+      setBody(JSON.stringify(server, null, 2))
+      setSseUrl(type === 'sse' ? String(server.url ?? '') : '')
+    } else {
+      // Reset to stdio defaults for a new-server form so we don't depend on
+      // the serverType closure value (which isn't in deps intentionally).
+      setServerType('stdio')
+      setBody(JSON.stringify(EMPTY_STDIO, null, 2))
+      setSseUrl('')
+    }
   }, [selected, servers])
 
   if (!config) {
     return <LoadingState label={m.loading} />
+  }
+
+  const handleTypeChange = (type: ServerType) => {
+    setServerType(type)
+
+    if (!selected) {
+      setBody(JSON.stringify(type === 'sse' ? EMPTY_SSE : EMPTY_STDIO, null, 2))
+      setSseUrl('')
+    }
+  }
+
+  const handleSseUrlChange = (url: string) => {
+    setSseUrl(url)
+
+    try {
+      const parsed = JSON.parse(body) as Record<string, unknown>
+      parsed.url = url
+      setBody(JSON.stringify(parsed, null, 2))
+    } catch {
+      // Body is not valid JSON right now (user may be mid-edit) — don't
+      // overwrite it; sseUrl will be reflected in the body once it becomes
+      // parseable again or when the user saves.
+    }
   }
 
   const saveServer = async () => {
@@ -237,6 +285,28 @@ export function McpSettings({ gateway, onConfigSaved }: McpSettingsProps) {
             <span className="text-xs text-muted-foreground">{m.name}</span>
             <Input onChange={event => setName(event.currentTarget.value)} placeholder="filesystem" value={name} />
           </label>
+          <div className="grid gap-1.5">
+            <span className="text-xs text-muted-foreground">{m.serverType}</span>
+            <SegmentedControl
+              onChange={handleTypeChange}
+              options={[
+                { id: 'stdio' as const, label: m.typeStdio },
+                { id: 'sse' as const, label: m.typeSse }
+              ]}
+              value={serverType}
+            />
+          </div>
+          {serverType === 'sse' && (
+            <label className="grid gap-1.5">
+              <span className="text-xs text-muted-foreground">{m.urlLabel}</span>
+              <Input
+                onChange={event => handleSseUrlChange(event.currentTarget.value)}
+                placeholder={m.urlPlaceholder}
+                type="url"
+                value={sseUrl}
+              />
+            </label>
+          )}
           <label className="grid gap-1.5">
             <span className="text-xs text-muted-foreground">{m.serverJson}</span>
             <Textarea

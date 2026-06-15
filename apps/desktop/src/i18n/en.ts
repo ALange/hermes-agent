@@ -527,6 +527,11 @@ export const en: Translations = {
       disabled: 'disabled',
       editServer: 'Edit server',
       name: 'Name',
+      serverType: 'Type',
+      typeStdio: 'Local',
+      typeSse: 'Remote (SSE)',
+      urlLabel: 'URL',
+      urlPlaceholder: 'https://example.com/mcp/sse',
       serverJson: 'Server JSON',
       remove: 'Remove',
       saveServer: 'Save server'

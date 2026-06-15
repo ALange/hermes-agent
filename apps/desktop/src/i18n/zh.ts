@@ -722,6 +722,11 @@ export const zh: Translations = {
       disabled: '已禁用',
       editServer: '编辑服务器',
       name: '名称',
+      serverType: '类型',
+      typeStdio: '本地',
+      typeSse: '远程 (SSE)',
+      urlLabel: 'URL',
+      urlPlaceholder: 'https://example.com/mcp/sse',
       serverJson: '服务器 JSON',
       remove: '移除',
       saveServer: '保存服务器'
